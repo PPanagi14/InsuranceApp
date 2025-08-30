@@ -1,7 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using InsuranceApp.Application.Common.Interfaces;
+using InsuranceApp.Infrastructure.Persistence;
+using InsuranceApp.Infrastructure.Repositories;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using InsuranceApp.Infrastructure.Persistence;
 
 namespace InsuranceApp.Infrastructure;
 
@@ -13,6 +15,10 @@ public static class DependencyInjection
                  ?? "Host=localhost;Port=5432;Database=insuranceapp;Username=postgres;Password=postgres";
         services.AddDbContext<AppDbContext>(opt => opt.UseNpgsql(cs));
 
+        services.AddScoped<IClientRepository, ClientRepository>();
+        services.AddScoped<IPolicyRepository, PolicyRepository>();
+
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
         return services;
     }
 }

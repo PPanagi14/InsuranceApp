@@ -1,9 +1,11 @@
+using InsuranceApp.Application;
 using InsuranceApp.Infrastructure;
 using InsuranceApp.Infrastructure.Persistence;
-using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddApplicationServices();
 builder.Services.AddInfrastructure(builder.Configuration);
 
 builder.Services.AddControllers();
