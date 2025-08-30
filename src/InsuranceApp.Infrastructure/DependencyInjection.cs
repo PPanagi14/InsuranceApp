@@ -1,4 +1,5 @@
 ﻿using InsuranceApp.Application.Common.Interfaces;
+using InsuranceApp.Infrastructure.Auth;
 using InsuranceApp.Infrastructure.Persistence;
 using InsuranceApp.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -17,6 +18,9 @@ public static class DependencyInjection
 
         services.AddScoped<IClientRepository, ClientRepository>();
         services.AddScoped<IPolicyRepository, PolicyRepository>();
+        services.AddScoped<IUserRepository, UserRepository>();
+
+        services.AddScoped<IJwtTokenService, JwtTokenService>();
 
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         return services;

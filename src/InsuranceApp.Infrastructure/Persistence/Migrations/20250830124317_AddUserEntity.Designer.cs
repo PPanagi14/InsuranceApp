@@ -3,6 +3,7 @@ using System;
 using InsuranceApp.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace InsuranceApp.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250830124317_AddUserEntity")]
+    partial class AddUserEntity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -144,12 +147,6 @@ namespace InsuranceApp.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("RefreshToken")
-                        .HasColumnType("text");
-
-                    b.Property<DateTime?>("RefreshTokenExpiryTime")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<string>("Role")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -173,20 +170,20 @@ namespace InsuranceApp.Infrastructure.Persistence.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("3274cdcb-1997-40a6-b5f8-8bf59589c23a"),
-                            CreatedAtUtc = new DateTime(2025, 8, 30, 20, 9, 41, 459, DateTimeKind.Utc).AddTicks(9211),
-                            PasswordHash = "$2b$10$Tq3MEEURceJi3ZSh04m9TezDjWVg188BQjA1GO34ikEa3Q5nuo41S",
+                            Id = new Guid("b01c3e35-1626-40ff-abe3-9355a80067ed"),
+                            CreatedAtUtc = new DateTime(2025, 8, 30, 12, 43, 17, 51, DateTimeKind.Utc).AddTicks(4253),
+                            PasswordHash = "$2b$10$emp0qTVybeQVkjbjsrDtJOKmO6nURGcSmgeb6tOwqCZJDaDXmQZim",
                             Role = "Admin",
-                            UpdatedAtUtc = new DateTime(2025, 8, 30, 20, 9, 41, 459, DateTimeKind.Utc).AddTicks(9216),
+                            UpdatedAtUtc = new DateTime(2025, 8, 30, 12, 43, 17, 51, DateTimeKind.Utc).AddTicks(4256),
                             Username = "admin"
                         },
                         new
                         {
-                            Id = new Guid("8b415691-ea52-4b0b-a41e-eb50a1865f39"),
-                            CreatedAtUtc = new DateTime(2025, 8, 30, 20, 9, 41, 531, DateTimeKind.Utc).AddTicks(1738),
-                            PasswordHash = "$2b$10$n.zseRI8UZEKbo6w0W9zjO7XOFWYA.svPlR9SlyPRQ1MQglcoCJpm",
+                            Id = new Guid("f53cd837-3c91-4e50-9b30-d07965bd930c"),
+                            CreatedAtUtc = new DateTime(2025, 8, 30, 12, 43, 17, 127, DateTimeKind.Utc).AddTicks(2706),
+                            PasswordHash = "$2b$10$PxqpHuEzJZPDJgpNa5uI3.ASAcKomBJO6V1bsmZZ9PDJL9zZqtOCG",
                             Role = "Broker",
-                            UpdatedAtUtc = new DateTime(2025, 8, 30, 20, 9, 41, 531, DateTimeKind.Utc).AddTicks(1741),
+                            UpdatedAtUtc = new DateTime(2025, 8, 30, 12, 43, 17, 127, DateTimeKind.Utc).AddTicks(2713),
                             Username = "broker"
                         });
                 });

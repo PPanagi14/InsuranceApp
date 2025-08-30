@@ -6,10 +6,12 @@ using InsuranceApp.Application.Features.Policies.DTOs;
 using InsuranceApp.Application.Features.Policies.Queries.GetPoliciesByClientId;
 using InsuranceApp.Application.Features.Policies.Queries.GetPolicyById;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace InsuranceApp.API.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class PoliciesController(IMediator mediator) : ControllerBase

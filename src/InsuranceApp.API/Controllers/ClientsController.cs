@@ -6,12 +6,15 @@ using InsuranceApp.Application.Features.Clients.DTOs;
 using InsuranceApp.Application.Features.Clients.Querries.GetClientById;
 using InsuranceApp.Application.Features.Clients.Querries.GetClients;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace InsuranceApp.API.Controllers;
 
+
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class ClientsController(IMediator mediator) : ControllerBase
 {
     [HttpPost]

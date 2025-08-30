@@ -7,6 +7,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 {
     public DbSet<Client> Clients => Set<Client>();
     public DbSet<Policy> Policies => Set<Policy>();
+    public DbSet<User> Users => Set<User>();
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
@@ -44,6 +45,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         // Global query filter → exclude soft-deleted entities automatically
         modelBuilder.Entity<Client>().HasQueryFilter(e => e.DeletedAtUtc == null);
         modelBuilder.Entity<Policy>().HasQueryFilter(e => e.DeletedAtUtc == null);
+        modelBuilder.Entity<User>().HasQueryFilter(e => e.DeletedAtUtc == null);
 
         base.OnModelCreating(modelBuilder);
     }
