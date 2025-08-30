@@ -5,21 +5,28 @@ using BCrypt.Net;
 
 namespace InsuranceApp.Application.Features.Users.Commands.RegisterUser;
 
-public class RegisterUserHandler(IUserRepository repo, IUnitOfWork uow)
+public class RegisterUserHandler(IUserRepository userRepo, IRoleRepository roleRepo, IUnitOfWork uow)
     : IRequestHandler<RegisterUserCommand, Guid>
 {
     public async Task<Guid> Handle(RegisterUserCommand request, CancellationToken ct)
     {
         var hashed = BCrypt.Net.BCrypt.HashPassword(request.Password);
 
+        var role = await roleRepo.GetByCodeAsync(request.RoleCode, ct);
+        if (role is null)
+            throw new Exception($"Role '{request.RoleCode}' not found");
+
         var user = new User
         {
             Username = request.Username,
             PasswordHash = hashed,
-            Role = request.Role
+            CreatedAtUtc = DateTime.UtcNow,
+            UpdatedAtUtc = DateTime.UtcNow
         };
 
-        await repo.AddAsync(user, ct);
+        user.Roles.Add(role);
+
+        await userRepo.AddAsync(user, ct);
         await uow.SaveChangesAsync(ct);
 
         return user.Id;

@@ -10,7 +10,9 @@ public class User : BaseEntity
 {
     public string Username { get; set; } = string.Empty;
     public string PasswordHash { get; set; } = string.Empty;
-    public string Role { get; set; } = "Broker";
+
+    // many-to-many navigation
+    public ICollection<Role> Roles { get; set; } = new List<Role>();
 
     // refresh token fields
     public string? RefreshToken { get; set; }

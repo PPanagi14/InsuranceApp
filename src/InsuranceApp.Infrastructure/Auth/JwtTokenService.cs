@@ -14,11 +14,16 @@ public class JwtTokenService(IConfiguration config) : IJwtTokenService
     public string GenerateToken(User user)
     {
         var claims = new List<Claim>
+    {
+        new(ClaimTypes.NameIdentifier, user.Id.ToString()),
+        new(ClaimTypes.Name, user.Username)
+    };
+
+        // add all role type codes to JWT claims
+        foreach (var role in user.Roles)
         {
-            new(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new(ClaimTypes.Name, user.Username),
-            new(ClaimTypes.Role, user.Role)
-        };
+            claims.Add(new Claim(ClaimTypes.Role, role.RoleType.Code));
+        }
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["Jwt:Key"]!));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -27,7 +32,7 @@ public class JwtTokenService(IConfiguration config) : IJwtTokenService
             issuer: config["Jwt:Issuer"],
             audience: config["Jwt:Audience"],
             claims: claims,
-            expires: DateTime.UtcNow.AddHours(2),
+            expires: DateTime.UtcNow.AddMinutes(30),
             signingCredentials: creds
         );
 

@@ -16,38 +16,47 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .IsRequired()
             .HasMaxLength(100);
 
-        builder.HasIndex(u => u.Username)
-            .IsUnique();
+        builder.HasIndex(u => u.Username).IsUnique();
 
-        builder.Property(u => u.PasswordHash)
-            .IsRequired();
+        builder.Property(u => u.PasswordHash).IsRequired();
 
-        builder.Property(u => u.Role)
-            .IsRequired()
-            .HasMaxLength(50);
+        builder.HasMany(u => u.Roles)
+               .WithMany(r => r.Users)
+               .UsingEntity(j => j.ToTable("UserRoles"));
 
-        var adminId = Guid.NewGuid();
-        var brokerId = Guid.NewGuid();
+        // --- Stable GUIDs ---
+        var adminUserId = Guid.Parse("33333333-3333-3333-3333-333333333333");
+        var brokerUserId = Guid.Parse("44444444-4444-4444-4444-444444444444");
 
         builder.HasData(
             new User
             {
-                Id = adminId,
+                Id = adminUserId,
                 Username = "admin",
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin@123"),
-                Role = "Admin",
                 CreatedAtUtc = DateTime.UtcNow,
                 UpdatedAtUtc = DateTime.UtcNow
             },
             new User
             {
-                Id = brokerId,
+                Id = brokerUserId,
                 Username = "broker",
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword("Broker@123"),
-                Role = "Broker",
                 CreatedAtUtc = DateTime.UtcNow,
                 UpdatedAtUtc = DateTime.UtcNow
             }
         );
+
+        // --- Seeding UserRoles join table ---
+        builder.HasMany(u => u.Roles)
+               .WithMany(r => r.Users)
+               .UsingEntity(j => j.HasData(
+                   // admin → ADMIN
+                   new { RolesId = Guid.Parse("11111111-1111-1111-1111-111111111111"), UsersId = adminUserId },
+                   // admin → BROKER
+                   new { RolesId = Guid.Parse("22222222-2222-2222-2222-222222222222"), UsersId = adminUserId },
+                   // broker → BROKER
+                   new { RolesId = Guid.Parse("22222222-2222-2222-2222-222222222222"), UsersId = brokerUserId }
+               ));
     }
 }

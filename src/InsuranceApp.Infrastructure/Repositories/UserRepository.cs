@@ -7,8 +7,11 @@ namespace InsuranceApp.Infrastructure.Repositories;
 
 public class UserRepository(AppDbContext db) : GenericRepository<User>(db), IUserRepository
 {
-    public async Task<User?> GetByUsernameAsync(string username, CancellationToken ct = default)
+    public async Task<User?> GetByUsernameAsync(string username, CancellationToken ct)
     {
-        return await db.Users.FirstOrDefaultAsync(u => u.Username == username, ct);
+        return await db.Users
+            .Include(u => u.Roles) //  load roles
+            .ThenInclude(r => r.RoleType) //  load role type
+            .FirstOrDefaultAsync(u => u.Username == username, ct);
     }
 }

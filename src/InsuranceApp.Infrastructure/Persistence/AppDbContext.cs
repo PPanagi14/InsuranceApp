@@ -8,6 +8,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Client> Clients => Set<Client>();
     public DbSet<Policy> Policies => Set<Policy>();
     public DbSet<User> Users => Set<User>();
+    public DbSet<Role> Roles => Set<Role>();               
+    public DbSet<RoleTypeEntity> RoleTypes => Set<RoleTypeEntity>(); 
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
@@ -42,10 +44,12 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
 
-        // Global query filter → exclude soft-deleted entities automatically
+        // Global query filters → exclude soft-deleted entities
         modelBuilder.Entity<Client>().HasQueryFilter(e => e.DeletedAtUtc == null);
         modelBuilder.Entity<Policy>().HasQueryFilter(e => e.DeletedAtUtc == null);
         modelBuilder.Entity<User>().HasQueryFilter(e => e.DeletedAtUtc == null);
+        modelBuilder.Entity<Role>().HasQueryFilter(e => e.DeletedAtUtc == null);       
+        modelBuilder.Entity<RoleTypeEntity>().HasQueryFilter(e => e.DeletedAtUtc == null); 
 
         base.OnModelCreating(modelBuilder);
     }
