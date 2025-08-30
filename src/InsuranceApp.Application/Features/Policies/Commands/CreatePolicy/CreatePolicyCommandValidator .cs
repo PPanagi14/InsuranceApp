@@ -3,16 +3,25 @@
 namespace InsuranceApp.Application.Features.Policies.Commands.CreatePolicy;
 
 
-public class CreatePolicyCommandValidator : AbstractValidator<CreatePolicyCommand>
+public class CreatePolicyValidator : AbstractValidator<CreatePolicyCommand>
 {
-    public CreatePolicyCommandValidator()
+    public CreatePolicyValidator()
     {
+        RuleFor(x => x.PolicyNumber)
+            .NotEmpty()
+            .MaximumLength(50);
+
         RuleFor(x => x.ClientId).NotEmpty();
-        RuleFor(x => x.Insurer).NotEmpty().MaximumLength(200);
-        RuleFor(x => x.PolicyNumber).NotEmpty().MaximumLength(100);
-        RuleFor(x => x.StartDate).LessThan(x => x.EndDate)
+
+        RuleFor(x => x.PremiumAmount)
+            .GreaterThan(0).WithMessage("Premium must be greater than 0");
+
+        RuleFor(x => x.StartDate)
+            .LessThan(x => x.EndDate)
             .WithMessage("Start date must be before end date");
-        RuleFor(x => x.PremiumAmount).GreaterThan(0);
-        RuleFor(x => x.Currency).NotEmpty().Length(3); // e.g. "USD", "EUR"
+
+        RuleFor(x => x.EndDate)
+            .GreaterThan(DateTime.UtcNow)
+            .WithMessage("End date must be in the future");
     }
 }

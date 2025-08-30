@@ -1,39 +1,72 @@
-﻿using InsuranceApp.Domain.Entities;
+﻿using InsuranceApp.Application.Common.Interfaces;
+using InsuranceApp.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace InsuranceApp.Infrastructure.Persistence;
 
-public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
+public class AppDbContext(
+    DbContextOptions<AppDbContext> options,
+    ICurrentUserService currentUserService,
+    ILogger<AppDbContext> logger)
+    : DbContext(options)
 {
+    private readonly ICurrentUserService _currentUserService = currentUserService;
+    private readonly ILogger<AppDbContext> _logger = logger;
+
     public DbSet<Client> Clients => Set<Client>();
     public DbSet<Policy> Policies => Set<Policy>();
     public DbSet<User> Users => Set<User>();
-    public DbSet<Role> Roles => Set<Role>();               
-    public DbSet<RoleTypeEntity> RoleTypes => Set<RoleTypeEntity>(); 
+    public DbSet<Role> Roles => Set<Role>();
+    public DbSet<RoleTypeEntity> RoleTypes => Set<RoleTypeEntity>();
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         var now = DateTime.UtcNow;
+        var currentUserId = _currentUserService.UserId;
 
         foreach (var entry in ChangeTracker.Entries<BaseEntity>())
         {
-            switch (entry.State)
+            if (entry.State == EntityState.Added)
             {
-                case EntityState.Added:
-                    entry.Entity.CreatedAtUtc = now;
-                    entry.Entity.UpdatedAtUtc = now;
-                    break;
+                entry.Entity.CreatedAtUtc = now;
+                entry.Entity.UpdatedAtUtc = now;
+                entry.Entity.CreatedBy = currentUserId;
 
-                case EntityState.Modified:
-                    entry.Entity.UpdatedAtUtc = now;
-                    break;
+                _logger.LogInformation(
+                    "Entity {Entity} with ID {Id} was created by {UserId} at {Time}",
+                    entry.Entity.GetType().Name,
+                    entry.Entity.Id,
+                    currentUserId,
+                    now);
+            }
 
-                case EntityState.Deleted:
-                    // Soft delete → mark as deleted instead of removing
-                    entry.State = EntityState.Modified;
-                    entry.Entity.DeletedAtUtc = now;
-                    entry.Entity.UpdatedAtUtc = now;
-                    break;
+            else if (entry.State == EntityState.Modified)
+            {
+                entry.Entity.UpdatedAtUtc = now;
+                entry.Entity.UpdatedBy = currentUserId;
+
+                _logger.LogInformation(
+                    "Entity {Entity} with ID {Id} was updated by {UserId} at {Time}",
+                    entry.Entity.GetType().Name,
+                    entry.Entity.Id,
+                    currentUserId,
+                    now);
+            }
+
+            else if (entry.State == EntityState.Deleted)
+            {
+                entry.State = EntityState.Modified;
+                entry.Entity.DeletedAtUtc = now;
+                entry.Entity.DeletedBy = currentUserId;
+                entry.Entity.UpdatedAtUtc = now;
+
+                _logger.LogWarning(
+                    "Entity {Entity} with ID {Id} was soft deleted by {UserId} at {Time}",
+                    entry.Entity.GetType().Name,
+                    entry.Entity.Id,
+                    currentUserId,
+                    now);
             }
         }
 
@@ -48,8 +81,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         modelBuilder.Entity<Client>().HasQueryFilter(e => e.DeletedAtUtc == null);
         modelBuilder.Entity<Policy>().HasQueryFilter(e => e.DeletedAtUtc == null);
         modelBuilder.Entity<User>().HasQueryFilter(e => e.DeletedAtUtc == null);
-        modelBuilder.Entity<Role>().HasQueryFilter(e => e.DeletedAtUtc == null);       
-        modelBuilder.Entity<RoleTypeEntity>().HasQueryFilter(e => e.DeletedAtUtc == null); 
+        modelBuilder.Entity<Role>().HasQueryFilter(e => e.DeletedAtUtc == null);
+        modelBuilder.Entity<RoleTypeEntity>().HasQueryFilter(e => e.DeletedAtUtc == null);
 
         base.OnModelCreating(modelBuilder);
     }

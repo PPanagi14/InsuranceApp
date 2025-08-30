@@ -2,6 +2,7 @@
 using InsuranceApp.Infrastructure.Auth;
 using InsuranceApp.Infrastructure.Persistence;
 using InsuranceApp.Infrastructure.Repositories;
+using InsuranceApp.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,6 +26,10 @@ public static class DependencyInjection
         services.AddScoped<IJwtTokenService, JwtTokenService>();
 
         services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+        services.AddScoped<ICurrentUserService, CurrentUserService>();
+        services.AddHttpContextAccessor();
+
         return services;
     }
 }

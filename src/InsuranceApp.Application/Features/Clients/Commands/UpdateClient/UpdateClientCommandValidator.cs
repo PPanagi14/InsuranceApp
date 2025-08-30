@@ -3,23 +3,32 @@ using InsuranceApp.Domain.Entities;
 
 namespace InsuranceApp.Application.Features.Clients.Commands.UpdateClient;
 
-public class UpdateClientCommandValidator : AbstractValidator<UpdateClientCommand>
+public class UpdateClientValidator : AbstractValidator<UpdateClientCommand>
 {
-    public UpdateClientCommandValidator()
+    public UpdateClientValidator()
     {
+        RuleFor(x => x.Id).NotEmpty();
+
+        RuleFor(x => x.Type).IsInEnum();
+
+        When(x => x.Type == ClientType.Person, () =>
+        {
+            RuleFor(x => x.FirstName).NotEmpty().WithMessage("First name is required");
+            RuleFor(x => x.LastName).NotEmpty().WithMessage("Last name is required");
+        });
+
+        When(x => x.Type == ClientType.Company, () =>
+        {
+            RuleFor(x => x.CompanyName).NotEmpty().WithMessage("Company name is required");
+        });
+
         RuleFor(x => x.Email)
-            .NotEmpty().EmailAddress().MaximumLength(200);
+            .NotEmpty()
+            .EmailAddress();
 
-        RuleFor(x => x.PhoneMobile)
-            .NotEmpty().MaximumLength(30);
-
-        RuleFor(x => x.FirstName)
-            .NotEmpty().When(x => x.Type == ClientType.Person);
-
-        RuleFor(x => x.LastName)
-            .NotEmpty().When(x => x.Type == ClientType.Person);
-
-        RuleFor(x => x.CompanyName)
-            .NotEmpty().When(x => x.Type == ClientType.Company);
+        RuleFor(x => x.Phone)
+            .NotEmpty()
+            .Matches(@"^\+?\d{7,15}$")
+            .WithMessage("Invalid phone number format");
     }
 }
