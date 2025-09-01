@@ -24,14 +24,14 @@ public class ClientsController(IMediator mediator) : ControllerBase
         return Ok(id);
     }
 
-    [HttpGet("GetAll")]
+    [HttpGet]
     public async Task<ActionResult<IReadOnlyList<ClientDto>>> GetAll()
     {
         var clients = await mediator.Send(new GetClientsQuery());
         return Ok(clients);
     }
 
-    [HttpGet("GetById/{id:guid}")]
+    [HttpGet("{id:guid}")]
     public async Task<ActionResult<ClientDetailDto>> GetById(Guid id)
     {
         var client = await mediator.Send(new GetClientByIdQuery(id));
@@ -39,17 +39,16 @@ public class ClientsController(IMediator mediator) : ControllerBase
         return Ok(client);
     }
 
-    [HttpPut("Update/{id:guid}")]
+    [HttpPut("{id:guid}")]
     public async Task<ActionResult<ClientDetailDto>> Update(Guid id, [FromBody] UpdateClientCommand command)
     {
-        if (id != command.Id)
-            return BadRequest("Route ID and command ID must match");
-
-        var updatedClient = await mediator.Send(command);
+        var updatedCommand = command with { Id = id }; //  use 'with' expression to set init-only property
+        var updatedClient = await mediator.Send(updatedCommand);
         return Ok(updatedClient);
     }
 
-    [HttpDelete("Delete/{id:guid}")]
+
+    [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id)
     {
         var success = await mediator.Send(new DeleteClientCommand(id));

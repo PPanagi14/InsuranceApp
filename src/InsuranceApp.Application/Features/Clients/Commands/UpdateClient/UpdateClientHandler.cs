@@ -20,7 +20,7 @@ public class UpdateClientHandler(IClientRepository repo, IUnitOfWork uow, IMappe
         client.LastName = request.Type == ClientType.Person ? request.LastName : null;
         client.CompanyName = request.Type == ClientType.Company ? request.CompanyName : null;
         client.Email = request.Email;
-        client.PhoneMobile = request.PhoneMobile;
+        client.PhoneMobile = request.Phone;
         client.City = request.City;
 
         await repo.UpdateAsync(client, ct);

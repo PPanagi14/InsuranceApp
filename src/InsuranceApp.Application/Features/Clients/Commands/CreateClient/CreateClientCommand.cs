@@ -8,12 +8,13 @@ using System.Threading.Tasks;
 
 namespace InsuranceApp.Application.Features.Clients.Commands.CreateClient;
 
-public record CreateClientCommand(
-    string FirstName,
-    string LastName,
-    string Email,
-    string Phone,
-    string? City,
-    string? CompanyName,
-    ClientType Type = ClientType.Person
-) : IRequest<Guid>;
+public class CreateClientCommand : IRequest<Guid>
+{
+    public ClientType Type { get; set; }
+    public string? FirstName { get; set; }
+    public string? LastName { get; set; }
+    public string? CompanyName { get; set; }
+    public string Email { get; set; } = string.Empty;
+    public string Phone { get; set; } = string.Empty;
+    public string? City { get; set; }
+}

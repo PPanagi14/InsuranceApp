@@ -11,6 +11,6 @@ public record UpdateClientCommand(
     string? LastName,
     string? CompanyName,
     string Email,
-    string PhoneMobile,
+    string Phone,
     string? City
 ) : IRequest<ClientDetailDto>;
