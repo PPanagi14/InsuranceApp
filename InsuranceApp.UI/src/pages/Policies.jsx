@@ -1,78 +1,47 @@
 import { useEffect, useState } from "react";
-import { DataGrid } from "@mui/x-data-grid";
 import { useApi } from "../api";
 import {
   Typography,
   Box,
-  Paper,
   Button,
+  Grid,
+  TextField,
+  InputAdornment,
+  ToggleButton,
+  ToggleButtonGroup,
+  Paper,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
-  TextField,
-  IconButton,
   MenuItem,
 } from "@mui/material";
-import { Edit, Delete } from "@mui/icons-material";
+import { Search } from "@mui/icons-material";
+import { PolicyCard } from "../components/PolicyCard";
+import { isExpiringSoon } from "../utils/date";
+import { useNavigate } from "react-router-dom";
+import PolicyForm from "./PolicyFormPage";
 
 export default function Policies() {
   const { request } = useApi();
+  const navigate = useNavigate();
+
   const [policies, setPolicies] = useState([]);
+  const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Dialog state
-  const [open, setOpen] = useState(false);
-  const [editingPolicy, setEditingPolicy] = useState(null);
-  const [form, setForm] = useState({
-    policyNumber: "",
-    premiumAmount: "",
-    startDate: "",
-    endDate: "",
-    status: "Active",
-    clientId: "", // important to link to a client
-  });
+  const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState("All");
 
-  // DataGrid columns
-  const columns = [
-    { field: "policyNumber", headerName: "Policy #", width: 150 },
-    { field: "premiumAmount", headerName: "Premium (€)", width: 150 },
-    { field: "startDate", headerName: "Start Date", width: 150 },
-    { field: "endDate", headerName: "End Date", width: 150 },
-    { field: "status", headerName: "Status", width: 120 },
-    { field: "clientId", headerName: "Client ID", width: 220 },
-    {
-      field: "actions",
-      headerName: "Actions",
-      width: 120,
-      renderCell: (params) => (
-        <>
-          <IconButton
-            color="primary"
-            onClick={() => handleEdit(params.row)}
-          >
-            <Edit />
-          </IconButton>
-          <IconButton
-            color="error"
-            onClick={() => handleDelete(params.row.id)}
-          >
-            <Delete />
-          </IconButton>
-        </>
-      ),
-    },
-  ];
-
-  // Load policies
   useEffect(() => {
     loadPolicies();
+    loadClients();
   }, []);
 
   const loadPolicies = async () => {
     try {
       setLoading(true);
-      const data = await request("/api/policies"); // make sure backend has this GET
+      const data = await request("/api/policies");
       setPolicies(data);
     } catch (err) {
       console.error("Failed to load policies:", err);
@@ -81,169 +50,166 @@ export default function Policies() {
     }
   };
 
-  // Handle form change
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
-
-  // Submit (add or update)
-  const handleSubmit = async () => {
+  const loadClients = async () => {
     try {
-      if (editingPolicy) {
-        await request(`/api/policies/${editingPolicy.id}`, {
-          method: "PUT",
-          body: JSON.stringify(form),
-        });
-      } else {
-        await request("/api/policies", {
-          method: "POST",
-          body: JSON.stringify(form),
-        });
-      }
-      setOpen(false);
-      setEditingPolicy(null);
-      resetForm();
-      loadPolicies();
+      const data = await request("/api/clients");
+      setClients(data);
     } catch (err) {
-      alert("Failed to save policy", err);
+      console.error("Failed to load clients:", err);
     }
   };
 
-  // Edit
-  const handleEdit = (policy) => {
-    setEditingPolicy(policy);
-    setForm({
-      policyNumber: policy.policyNumber,
-      premiumAmount: policy.premiumAmount,
-      startDate: policy.startDate,
-      endDate: policy.endDate,
-      status: policy.status,
-      clientId: policy.clientId,
-    });
-    setOpen(true);
-  };
 
-  // Delete
-  const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this policy?")) return;
-    try {
-      await request(`/api/policies/${id}`, { method: "DELETE" });
-      loadPolicies();
-    } catch {
-      alert("Failed to delete policy");
-    }
-  };
+  // Summary values
+  const totalPolicies = policies.length;
+  const activeCount = policies.filter((p) => p.status === "Active").length;
+  const expiringSoonCount = policies.filter((p) => isExpiringSoon(p.endDate))
+    .length;
+  const totalPremium = policies.reduce(
+    (sum, p) => sum + Number(p.premiumAmount || 0),
+    0
+  );
 
-  const resetForm = () => {
-    setForm({
-      policyNumber: "",
-      premiumAmount: "",
-      startDate: "",
-      endDate: "",
-      status: "Active",
-      clientId: "",
-    });
-  };
+  // Filtered list
+  const filteredPolicies = policies.filter((p) => {
+    const matchesSearch = `${p.policyNumber} ${p.insurer} ${p.policyType}`
+      .toLowerCase()
+      .includes(search.toLowerCase());
+    const matchesFilter =
+      filter === "All" ||
+      p.status === filter ||
+      (filter === "Expiring" && isExpiringSoon(p.endDate));
+    return matchesSearch && matchesFilter;
+  });
+
+  if (loading) {
+    return (
+      <Typography variant="h6" p={3}>
+        Loading policies...
+      </Typography>
+    );
+  }
 
   return (
     <Box p={3}>
       <Typography variant="h4" gutterBottom>
         Policies
       </Typography>
+      <Typography variant="body2" color="text.secondary" gutterBottom>
+        Track and manage all insurance policies
+      </Typography>
 
-      <Button
-        variant="contained"
-        onClick={() => {
-          resetForm();
-          setEditingPolicy(null);
-          setOpen(true);
-        }}
-        sx={{ mb: 2 }}
-      >
-        + Add Policy
-      </Button>
-
-      <Paper sx={{ height: 500, width: "100%" }}>
-        <DataGrid
-          rows={policies}
-          columns={columns}
-          loading={loading}
-          pageSize={10}
-          rowsPerPageOptions={[5, 10, 20]}
-          disableRowSelectionOnClick
-          getRowId={(row) => row.id}
-        />
-      </Paper>
-
-      {/* Add/Edit Policy Dialog */}
-      <Dialog open={open} onClose={() => setOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>{editingPolicy ? "Edit Policy" : "Add Policy"}</DialogTitle>
-        <DialogContent>
-          <TextField
-            fullWidth
-            margin="normal"
-            label="Policy Number"
-            name="policyNumber"
-            value={form.policyNumber}
-            onChange={handleChange}
-          />
-          <TextField
-            fullWidth
-            margin="normal"
-            label="Premium Amount (€)"
-            name="premiumAmount"
-            value={form.premiumAmount}
-            onChange={handleChange}
-          />
-          <TextField
-            type="date"
-            fullWidth
-            margin="normal"
-            label="Start Date"
-            name="startDate"
-            value={form.startDate}
-            onChange={handleChange}
-            InputLabelProps={{ shrink: true }}
-          />
-          <TextField
-            type="date"
-            fullWidth
-            margin="normal"
-            label="End Date"
-            name="endDate"
-            value={form.endDate}
-            onChange={handleChange}
-            InputLabelProps={{ shrink: true }}
-          />
-          <TextField
-            select
-            fullWidth
-            margin="normal"
-            label="Status"
-            name="status"
-            value={form.status}
-            onChange={handleChange}
+      {/* Summary cards */}
+      <Grid container spacing={2} mb={3}>
+        <Grid item xs={12} sm={6} md={3}>
+          <Paper sx={{ p: 2, borderRadius: 2 }}>
+            <Typography variant="body2" color="text.secondary">
+              Total Policies
+            </Typography>
+            <Typography variant="h6">{totalPolicies}</Typography>
+          </Paper>
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
+          <Paper sx={{ p: 2, borderRadius: 2 }}>
+            <Typography variant="body2" color="text.secondary">
+              Active Policies
+            </Typography>
+            <Typography variant="h6" color="success.main">
+              {activeCount}
+            </Typography>
+          </Paper>
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
+          <Paper
+            sx={{
+              p: 2,
+              borderRadius: 2,
+              bgcolor: expiringSoonCount > 0 ? "warning.light" : "background.paper",
+              border:
+                expiringSoonCount > 0 ? "1px solid" : "1px solid transparent",
+              borderColor: expiringSoonCount > 0 ? "warning.main" : "transparent",
+              boxShadow: expiringSoonCount > 0 ? 4 : 1,
+            }}
           >
-            <MenuItem value="Active">Active</MenuItem>
-            <MenuItem value="Expired">Expired</MenuItem>
-            <MenuItem value="Cancelled">Cancelled</MenuItem>
-          </TextField>
-          <TextField
-            fullWidth
-            margin="normal"
-            label="Client ID"
-            name="clientId"
-            value={form.clientId}
-            onChange={handleChange}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpen(false)}>Cancel</Button>
-          <Button variant="contained" onClick={handleSubmit}>
-            Save
-          </Button>
-        </DialogActions>
-      </Dialog>
+            <Typography variant="body2" color="text.secondary">
+              Expiring Soon
+            </Typography>
+            <Typography
+              variant="h6"
+              color={expiringSoonCount > 0 ? "warning.dark" : "text.primary"}
+              fontWeight={expiringSoonCount > 0 ? "bold" : "normal"}
+            >
+              {expiringSoonCount}
+            </Typography>
+          </Paper>
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
+          <Paper sx={{ p: 2, borderRadius: 2 }}>
+            <Typography variant="body2" color="text.secondary">
+              Total Premium
+            </Typography>
+            <Typography variant="h6">€{totalPremium}</Typography>
+          </Paper>
+        </Grid>
+      </Grid>
+
+      {/* Toolbar */}
+      <Box
+        display="flex"
+        alignItems="center"
+        justifyContent="space-between"
+        mb={3}
+        gap={2}
+        flexWrap="wrap"
+      >
+        <TextField
+          placeholder="Search policies..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          size="small"
+          sx={{ flex: 1, minWidth: 250 }}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <Search />
+              </InputAdornment>
+            ),
+          }}
+        />
+
+        <ToggleButtonGroup
+          value={filter}
+          exclusive
+          onChange={(e, val) => val && setFilter(val)}
+          size="small"
+        >
+          <ToggleButton value="All">All</ToggleButton>
+          <ToggleButton value="Active">Active</ToggleButton>
+          <ToggleButton value="Pending">Pending</ToggleButton>
+          <ToggleButton value="Expiring">Expiring Soon</ToggleButton>
+        </ToggleButtonGroup>
+
+        <Button variant="contained" onClick={() => navigate("/policies/new")}>
+          + New Policy
+        </Button>
+
+      </Box>
+
+      {/* Policies list */}
+      <Grid container spacing={2}>
+        {filteredPolicies.map((policy) => (
+          <Grid item xs={12} key={policy.id}>
+            <PolicyCard
+              policy={policy}
+              client={clients.find((c) => c.id === policy.clientId)}
+              onView={() => navigate(`/policies/${policy.id}`)}
+              onRenew={() => console.log("Renew", policy.id)}
+            />
+          </Grid>
+        ))}
+      </Grid>
+
+      
     </Box>
   );
 }

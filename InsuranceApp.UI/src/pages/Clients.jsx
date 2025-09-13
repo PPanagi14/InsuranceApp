@@ -1,10 +1,8 @@
 import { useEffect, useState } from "react";
-import { DataGrid } from "@mui/x-data-grid";
 import { useApi } from "../api";
 import {
   Typography,
   Box,
-  Paper,
   Button,
   Dialog,
   DialogTitle,
@@ -12,60 +10,26 @@ import {
   DialogActions,
   TextField,
   MenuItem,
-  IconButton,
+  Grid,
+  InputAdornment,
+  ToggleButtonGroup,
+  ToggleButton,
 } from "@mui/material";
-import { Edit, Delete } from "@mui/icons-material";
+import { Search, FilterList } from "@mui/icons-material";
+import { ClientCard } from "../components/ClientCard";
+import { useNavigate } from "react-router-dom";
+
 
 export default function Clients() {
+  const navigate = useNavigate();
+
   const { request } = useApi();
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Dialog state
-  const [open, setOpen] = useState(false);
-  const [editingClient, setEditingClient] = useState(null);
-  const [form, setForm] = useState({
-    type: "Person",
-    firstName: "",
-    lastName: "",
-    companyName: "",
-    email: "",
-    phone: "",
-    city: "",
-  });
 
-  // DataGrid columns
-  const columns = [
-    { field: "id", headerName: "ID", width: 200 },
-    { field: "type", headerName: "Type", width: 120 },
-    { field: "firstName", headerName: "First Name", width: 150 },
-    { field: "lastName", headerName: "Last Name", width: 150 },
-    { field: "companyName", headerName: "Company", width: 200 },
-    { field: "email", headerName: "Email", width: 220 },
-    { field: "phoneMobile", headerName: "Phone", width: 160 },
-    { field: "city", headerName: "City", width: 150 },
-    {
-      field: "actions",
-      headerName: "Actions",
-      width: 120,
-      renderCell: (params) => (
-        <>
-          <IconButton
-            color="primary"
-            onClick={() => handleEdit(params.row)}
-          >
-            <Edit />
-          </IconButton>
-          <IconButton
-            color="error"
-            onClick={() => handleDelete(params.row.id)}
-          >
-            <Delete />
-          </IconButton>
-        </>
-      ),
-    },
-  ];
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("All");
 
   // Load clients
   useEffect(() => {
@@ -84,184 +48,83 @@ export default function Clients() {
     }
   };
 
-  // Handle form change
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
 
-  // Submit (add or update)
-  const handleSubmit = async () => {
-    try {
-      if (editingClient) {
-        await request(`/api/clients/${editingClient.id}`, {
-          method: "PUT",
-          body: JSON.stringify(form),
-        });
-      } else {
-        await request("/api/clients", {
-          method: "POST",
-          body: JSON.stringify(form),
-        });
-      }
-      setOpen(false);
-      setEditingClient(null);
-      resetForm();
-      loadClients();
-    } catch (err) {
-      alert("Failed to save client",err);
-    }
-  };
 
-  // Edit client
-  const handleEdit = (client) => {
-    setEditingClient(client);
-    setForm({
-      type: client.type,
-      firstName: client.firstName || "",
-      lastName: client.lastName || "",
-      companyName: client.companyName || "",
-      email: client.email,
-      phone: client.phoneMobile,
-      city: client.city || "",
-    });
-    setOpen(true);
-  };
+  // Derived list after search & filter
+  const filteredClients = clients.filter((c) => {
+    const matchesSearch =
+      `${c.firstName} ${c.lastName} ${c.companyName} ${c.email}`
+        .toLowerCase()
+        .includes(search.toLowerCase());
 
-  // Delete client
-  const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this client?")) return;
-    try {
-      await request(`/api/clients/${id}`, { method: "DELETE" });
-      loadClients();
-    } catch {
-      alert("Failed to delete client");
-    }
-  };
+    const matchesFilter =
+      statusFilter === "All" || c.status === statusFilter;
 
-  const resetForm = () => {
-    setForm({
-      type: "Person",
-      firstName: "",
-      lastName: "",
-      companyName: "",
-      email: "",
-      phone: "",
-      city: "",
-    });
-  };
+    return matchesSearch && matchesFilter;
+  });
+
+ if(loading) {
+    return <Typography variant="h6" p={3}>Loading clients...</Typography>;
+  }
 
   return (
-    <>
     <Box p={3}>
       <Typography variant="h4" gutterBottom>
         Clients
       </Typography>
 
-      <Button
-        variant="contained"
-        onClick={() => {
-          resetForm();
-          setEditingClient(null);
-          setOpen(true);
-        }}
-        sx={{ mb: 2 }}
-      >
-        + Add Client
-      </Button>
-
-      <Paper sx={{ height: 500, width: "100%" }}>
-        <DataGrid
-          rows={clients}
-          columns={columns}
-          loading={loading}
-          pageSize={10}
-          rowsPerPageOptions={[5, 10, 20]}
-          disableRowSelectionOnClick
-          getRowId={(row) => row.id}
+      {/* Toolbar */}
+      <Box display="flex" alignItems="center" justifyContent="space-between" mb={3} gap={2} flexWrap="wrap">
+        {/* Search bar */}
+        <TextField
+          placeholder="Search clients..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          size="small"
+          sx={{ flex: 1, minWidth: 250 }}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <Search />
+              </InputAdornment>
+            ),
+          }}
         />
-      </Paper>
 
-      {/* Add/Edit Client Dialog */}
-      <Dialog open={open} onClose={() => setOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>{editingClient ? "Edit Client" : "Add Client"}</DialogTitle>
-        <DialogContent>
-          {console.log(form)}
-          <TextField
-            select
-            fullWidth
-            margin="normal"
-            label="Client Type"
-            name="type"
-            value={form.type}
-            onChange={handleChange}
-          >
-            <MenuItem value="Person">Person</MenuItem>
-            <MenuItem value="Company">Company</MenuItem>
-          </TextField>
+        {/* Filter buttons */}
+        <ToggleButtonGroup
+          value={statusFilter}
+          exclusive
+          onChange={(e, val) => val && setStatusFilter(val)}
+          size="small"
+        >
+          <ToggleButton value="All">
+            <FilterList fontSize="small" /> All ({clients.length})
+          </ToggleButton>
+          <ToggleButton value="Active">
+            Active ({clients.filter((c) => c.status === "Active").length})
+          </ToggleButton>
+          <ToggleButton value="Pending">
+            Pending ({clients.filter((c) => c.status === "Pending").length})
+          </ToggleButton>
+        </ToggleButtonGroup>
 
-          {form.type === "Person" ? (
-            <>
-              <TextField
-                fullWidth
-                margin="normal"
-                label="First Name"
-                name="firstName"
-                value={form.firstName}
-                onChange={handleChange}
-              />
-              <TextField
-                fullWidth
-                margin="normal"
-                label="Last Name"
-                name="lastName"
-                value={form.lastName}
-                onChange={handleChange}
-              />
-            </>
-          ) : (
-            <TextField
-              fullWidth
-              margin="normal"
-              label="Company Name"
-              name="companyName"
-              value={form.companyName}
-              onChange={handleChange}
-            />
-          )}
+        {/* Add client button */}
+        <Button variant="contained" onClick={() => navigate("/clients/new")}>
+          + New Client
+        </Button>
+      </Box>
 
-          <TextField
-            fullWidth
-            margin="normal"
-            label="Email"
-            name="email"
-            value={form.email}
-            onChange={handleChange}
-          />
-          <TextField
-            fullWidth
-            margin="normal"
-            label="Phone"
-            name="phone"
-            value={form.phone}
-            onChange={handleChange}
-          />
-          <TextField
-            fullWidth
-            margin="normal"
-            label="City"
-            name="city"
-            value={form.city}
-            onChange={handleChange}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpen(false)}>Cancel</Button>
-          <Button variant="contained" onClick={handleSubmit}>
-            Save
-          </Button>
-        </DialogActions>
-      </Dialog>
+      {/* Grid of cards */}
+      <Grid container spacing={3}>
+        {filteredClients.map((client) => (
+          <Grid size={{xs:12, sm:8, md:6, lg:4}} key={client.id}>
+            <ClientCard client={client} />
+          </Grid>
+        ))}
+      </Grid>
+
+      
     </Box>
-    </>
   );
 }

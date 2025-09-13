@@ -8,26 +8,40 @@ export function AuthProvider({ children }) {
     user: null,
     accessToken: null,
     refreshToken: null,
+    roles: [],
   });
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true); // start as true
 
   // Load from localStorage on startup
   useEffect(() => {
-    const stored = localStorage.getItem("auth");
-    if (stored) {
-      setAuth(JSON.parse(stored));
+    try {
+      const stored = localStorage.getItem("auth");
+      if (stored) {
+        setAuth(JSON.parse(stored));
+      }
+    } catch (err) {
+      console.error("Error reading auth from localStorage", err);
+      localStorage.removeItem("auth");
     }
+    setLoading(false); 
   }, []);
 
   const login = (user, accessToken, refreshToken) => {
-  // decode roles from token
-  const decoded = jwtDecode(accessToken);
-  const roles = decoded["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] || [];
+    let roles = [];
+    try {
+      const decoded = jwtDecode(accessToken);
+      const claim =
+        decoded["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
+      if (Array.isArray(claim)) roles = claim;
+      else if (typeof claim === "string") roles = [claim];
+    } catch {
+      roles = [];
+    }
 
-  const data = { user, accessToken, refreshToken, roles };
-  setAuth(data);
-  localStorage.setItem("auth", JSON.stringify(data));
-};
+    const data = { user, accessToken, refreshToken, roles };
+    setAuth(data);
+    localStorage.setItem("auth", JSON.stringify(data));
+  };
 
   const updateTokens = (accessToken, refreshToken) => {
     const data = { ...auth, accessToken, refreshToken };
@@ -36,13 +50,13 @@ export function AuthProvider({ children }) {
   };
 
   const logout = () => {
-    setAuth({ user: null, accessToken: null, refreshToken: null });
+    setAuth({ user: null, accessToken: null, refreshToken: null, roles: [] });
     localStorage.removeItem("auth");
   };
 
   return (
     <AuthContext.Provider
-      value={{ ...auth, login, updateTokens, logout, loading, setLoading }}
+      value={{ ...auth, login, updateTokens, logout, loading }}
     >
       {children}
     </AuthContext.Provider>

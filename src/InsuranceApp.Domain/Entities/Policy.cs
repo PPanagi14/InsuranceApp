@@ -1,5 +1,7 @@
 ﻿namespace InsuranceApp.Domain.Entities;
 
+
+public enum PaymentFrequency { Monthly = 1, Quarterly = 3, SemiAnnual = 6, Annual = 12 }
 public enum PolicyType { Auto, Home, Life, Health, Travel, Business, Other }
 public enum PolicyStatus { Active, Pending, Expired, Cancelled }
 
