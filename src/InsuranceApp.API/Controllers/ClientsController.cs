@@ -3,6 +3,7 @@ using InsuranceApp.Application.Features.Clients.Commands.DeleteClient;
 using InsuranceApp.Application.Features.Clients.Commands.RestoreClient;
 using InsuranceApp.Application.Features.Clients.Commands.UpdateClient;
 using InsuranceApp.Application.Features.Clients.DTOs;
+using InsuranceApp.Application.Features.Clients.Querries.GetAllClientsWithDetails;
 using InsuranceApp.Application.Features.Clients.Querries.GetClientById;
 using InsuranceApp.Application.Features.Clients.Querries.GetClients;
 using MediatR;
@@ -28,6 +29,12 @@ public class ClientsController(IMediator mediator) : ControllerBase
     public async Task<ActionResult<IReadOnlyList<ClientDto>>> GetAll()
     {
         var clients = await mediator.Send(new GetClientsQuery());
+        return Ok(clients);
+    }
+    [HttpGet("GetAllClientsWithDetails")]
+    public async Task<ActionResult<IReadOnlyList<ClientDetailDto>>> GetAllClientsWithDetails()
+    {
+        var clients = await mediator.Send(new GetAllClientsWithDetailsQuery());
         return Ok(clients);
     }
 

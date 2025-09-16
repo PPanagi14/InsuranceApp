@@ -13,7 +13,6 @@ import { useNavigate } from "react-router-dom";
 
 export function ClientCard({ client }) {
   const navigate = useNavigate();
-  console.log("ClientCard client:", client);
   return (
     <Card sx={{ borderRadius: 3, boxShadow: 3 }}>
       <CardContent>
@@ -23,20 +22,15 @@ export function ClientCard({ client }) {
             {client.firstName} {client.lastName}
           </Typography>
           <Chip
-            label="Active"
-            color="success" 
-            size="small"
-          />
-          {/* <Chip
             label={client.status}
             color={client.status === "Active" ? "success" : "default"}
             size="small"
-          /> */}
+          />
         </Box>
 
         {/* Subheader */}
         <Typography variant="body2" color="text.secondary" gutterBottom>
-          Client since {new Date(client.startDate).toLocaleDateString()}
+          Client since {new Date(client.createdAtUtc).toLocaleDateString()}
         </Typography>
 
         {/* Contact info */}
@@ -69,7 +63,7 @@ export function ClientCard({ client }) {
             Total Premium:
           </Typography>
           <Typography variant="body2" fontWeight="bold" color="success.main">
-            {/* ${client.totalPremium?.toLocaleString()} */}
+            ${client.totalPremium?.toLocaleString()}
           </Typography>
         </Box>
 

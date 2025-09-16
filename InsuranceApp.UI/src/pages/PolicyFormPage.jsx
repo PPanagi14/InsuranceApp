@@ -22,6 +22,13 @@ export default function PolicyFormPage() {
     premiumAmount: "",
     currency: "EUR",
     status: "Active",
+
+    // new fields
+    coverageAmount: "",
+    paymentFrequency: "Annual",
+    paymentMethod: "",
+    brokerCommission: "",
+    renewalDate: "",
   });
   const [editingPolicy, setEditingPolicy] = useState(null);
 
@@ -40,6 +47,11 @@ export default function PolicyFormPage() {
     }
   };
 
+  const formatDateForInput = (dateStr) => {
+    if (!dateStr) return "";
+    return new Date(dateStr).toISOString().slice(0, 16);
+  };
+
   const loadPolicy = async (policyId) => {
     try {
       const data = await request(`/api/policies/${policyId}`);
@@ -48,15 +60,18 @@ export default function PolicyFormPage() {
         insurer: data.insurer,
         policyType: data.policyType,
         policyNumber: data.policyNumber,
-        startDate: data.startDate
-          ? new Date(data.startDate).toISOString().slice(0, 16)
-          : "",
-        endDate: data.endDate
-          ? new Date(data.endDate).toISOString().slice(0, 16)
-          : "",
+        startDate: formatDateForInput(data.startDate),
+        endDate: formatDateForInput(data.endDate),
         premiumAmount: data.premiumAmount,
         currency: data.currency,
         status: data.status,
+
+        // new fields
+        coverageAmount: data.coverageAmount || "",
+        paymentFrequency: data.paymentFrequency || "Annual",
+        paymentMethod: data.paymentMethod || "",
+        brokerCommission: data.brokerCommission || "",
+        renewalDate: formatDateForInput(data.renewalDate),
       });
       setEditingPolicy(data);
     // eslint-disable-next-line no-unused-vars
@@ -69,8 +84,9 @@ export default function PolicyFormPage() {
     try {
       const payload = {
         ...values,
-        startDate: new Date(values.startDate).toISOString(),
-        endDate: new Date(values.endDate).toISOString(),
+        startDate: values.startDate ? new Date(values.startDate).toISOString() : null,
+        endDate: values.endDate ? new Date(values.endDate).toISOString() : null,
+        renewalDate: values.renewalDate ? new Date(values.renewalDate).toISOString() : null,
       };
 
       if (editingPolicy) {

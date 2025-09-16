@@ -41,7 +41,7 @@ export default function Policies() {
   const loadPolicies = async () => {
     try {
       setLoading(true);
-      const data = await request("/api/policies");
+      const data = await request("/api/policies/GetAllPoliciesWithDetails");
       setPolicies(data);
     } catch (err) {
       console.error("Failed to load policies:", err);
@@ -101,7 +101,7 @@ export default function Policies() {
 
       {/* Summary cards */}
       <Grid container spacing={2} mb={3}>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid  size={{xs:12 ,sm:6 ,md:3}}>
           <Paper sx={{ p: 2, borderRadius: 2 }}>
             <Typography variant="body2" color="text.secondary">
               Total Policies
@@ -109,7 +109,7 @@ export default function Policies() {
             <Typography variant="h6">{totalPolicies}</Typography>
           </Paper>
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid size={{xs:12 ,sm:6 ,md:3}}>
           <Paper sx={{ p: 2, borderRadius: 2 }}>
             <Typography variant="body2" color="text.secondary">
               Active Policies
@@ -119,7 +119,7 @@ export default function Policies() {
             </Typography>
           </Paper>
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid size={{xs:12 ,sm:6 ,md:3}}>
           <Paper
             sx={{
               p: 2,
@@ -143,7 +143,7 @@ export default function Policies() {
             </Typography>
           </Paper>
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid size={{xs:12 ,sm:6 ,md:3}}>
           <Paper sx={{ p: 2, borderRadius: 2 }}>
             <Typography variant="body2" color="text.secondary">
               Total Premium
@@ -196,9 +196,10 @@ export default function Policies() {
       </Box>
 
       {/* Policies list */}
+      
       <Grid container spacing={2}>
         {filteredPolicies.map((policy) => (
-          <Grid item xs={12} key={policy.id}>
+          <Grid size={{xs:12 }} key={policy.id}>
             <PolicyCard
               policy={policy}
               client={clients.find((c) => c.id === policy.clientId)}

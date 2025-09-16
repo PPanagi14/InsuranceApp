@@ -39,7 +39,7 @@ export default function Clients() {
   const loadClients = async () => {
     try {
       setLoading(true);
-      const data = await request("/api/clients");
+      const data = await request("/api/clients/GetAllClientsWithDetails");
       setClients(data);
     } catch (err) {
       console.error("Failed to load clients:", err);
@@ -104,8 +104,8 @@ export default function Clients() {
           <ToggleButton value="Active">
             Active ({clients.filter((c) => c.status === "Active").length})
           </ToggleButton>
-          <ToggleButton value="Pending">
-            Pending ({clients.filter((c) => c.status === "Pending").length})
+          <ToggleButton value="Inactive">
+            Inactive ({clients.filter((c) => c.status === "Inactive").length})
           </ToggleButton>
         </ToggleButtonGroup>
 

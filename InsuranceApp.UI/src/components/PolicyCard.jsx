@@ -6,91 +6,151 @@ import {
   Chip,
   Divider,
   Button,
-  Stack,
+  IconButton,
 } from "@mui/material";
-import { Event, Person, WarningAmber } from "@mui/icons-material";
-import { formatDateTime, isExpiringSoon } from "../utils/date";
-import { useNavigate } from "react-router-dom";
+import { Event, Euro, Business, Repeat, Payment } from "@mui/icons-material";
 
-
-
-export function PolicyCard({ policy, client }) {
-  const expiringSoon = isExpiringSoon(policy.endDate);
-    const navigate = useNavigate();
-
-
+export function PolicyCard({ policy, client, onView, onRenew }) {
   return (
-    <Card sx={{ borderRadius: 3, boxShadow: 2 }}>
+    <Card sx={{ borderRadius: 3, boxShadow: 3 }}>
       <CardContent>
-        {/* Header row */}
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
-          <Typography variant="subtitle1" fontWeight="bold">
-            {policy.policyNumber}
+        {/* Top row: Policy number + Status */}
+        <Box display="flex" justifyContent="space-between" alignItems="center">
+          <Typography variant="h6" fontWeight="bold">
+            Policy #{policy.policyNumber}
           </Typography>
-          <Stack direction="row" spacing={1}>
-            {expiringSoon && (
-              <Chip
-                icon={<WarningAmber />}
-                label="Expiring Soon"
-                color="warning"
-                size="small"
-              />
-            )}
-            <Chip
-              label={policy.status}
-              color={policy.status === "Active" ? "success" : "default"}
-              size="small"
-            />
-          </Stack>
+          <Chip
+            label={policy.status}
+            color={
+              policy.status === "Active"
+                ? "success"
+                : policy.status === "Expired"
+                ? "error"
+                : "default"
+            }
+            size="small"
+          />
         </Box>
 
+        {/* Subheader: Client */}
         <Typography variant="body2" color="text.secondary" gutterBottom>
-          {policy.policyType} Insurance
+          {client
+            ? client.type === "Person"
+              ? `${client.firstName} ${client.lastName}`
+              : client.companyName
+            : "Unknown Client"}
         </Typography>
-
-        {/* Client info */}
-        <Box display="flex" alignItems="center" gap={1} mb={0.5}>
-          <Person fontSize="small" color="action" />
-          <Typography variant="body2">
-            {client?.firstName} {client?.lastName}
-          </Typography>
-        </Box>
-
-        {/* Dates with time */}
-        <Box display="flex" alignItems="center" gap={1}>
-          <Event fontSize="small" color="action" />
-          <Typography variant="body2">
-            {formatDateTime(policy.startDate)}
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            – {formatDateTime(policy.endDate)}
-          </Typography>
-        </Box>
 
         <Divider sx={{ my: 1 }} />
 
-        {/* Premium */}
+        {/* Policy Info */}
         <Box display="flex" justifyContent="space-between" mb={1}>
-          <Typography variant="body2" color="success.main" fontWeight="bold">
-            €{policy.premiumAmount.toLocaleString()}
+          <Typography variant="body2" color="text.secondary">
+            Insurer:
           </Typography>
-          {policy.commission && (
-            <Typography variant="body2" color="text.secondary">
-              Commission: €{policy.commission}
-            </Typography>
-          )}
+          <Typography variant="body2" fontWeight="bold">
+            {policy.insurer}
+          </Typography>
+        </Box>
+        <Box display="flex" justifyContent="space-between" mb={1}>
+          <Typography variant="body2" color="text.secondary">
+            Type:
+          </Typography>
+          <Typography variant="body2">{policy.policyType}</Typography>
         </Box>
 
+        {/* Dates */}
+        <Box display="flex" justifyContent="space-between" mb={1}>
+          <Typography variant="body2" color="text.secondary">
+            Start:
+          </Typography>
+          <Typography variant="body2">
+            {new Date(policy.startDate).toLocaleDateString()}
+          </Typography>
+        </Box>
+        <Box display="flex" justifyContent="space-between" mb={1}>
+          <Typography variant="body2" color="text.secondary">
+            End:
+          </Typography>
+          <Typography variant="body2">
+            {new Date(policy.endDate).toLocaleDateString()}
+          </Typography>
+        </Box>
+        {policy.renewalDate && (
+          <Box display="flex" justifyContent="space-between" mb={1}>
+            <Typography variant="body2" color="text.secondary">
+              Renewal:
+            </Typography>
+            <Typography variant="body2">
+              {new Date(policy.renewalDate).toLocaleDateString()}
+            </Typography>
+          </Box>
+        )}
+
+        <Divider sx={{ my: 1 }} />
+
+        {/* Financials */}
+        <Box display="flex" justifyContent="space-between" mb={1}>
+          <Typography variant="body2" color="text.secondary">
+            Premium:
+          </Typography>
+          <Typography variant="body2" fontWeight="bold" color="success.main">
+            {policy.premiumAmount} {policy.currency}
+          </Typography>
+        </Box>
+        {policy.coverageAmount && (
+          <Box display="flex" justifyContent="space-between" mb={1}>
+            <Typography variant="body2" color="text.secondary">
+              Coverage:
+            </Typography>
+            <Typography variant="body2" fontWeight="bold">
+              {policy.coverageAmount} {policy.currency}
+            </Typography>
+          </Box>
+        )}
+        {policy.brokerCommission && (
+          <Box display="flex" justifyContent="space-between" mb={1}>
+            <Typography variant="body2" color="text.secondary">
+              Commission:
+            </Typography>
+            <Typography variant="body2" fontWeight="bold">
+              {policy.brokerCommission} {policy.currency}
+            </Typography>
+          </Box>
+        )}
+
+        {/* Payment Info */}
+        <Box display="flex" justifyContent="space-between" mb={1}>
+          <Typography variant="body2" color="text.secondary">
+            Payment Frequency:
+          </Typography>
+          <Typography variant="body2">{policy.paymentFrequency}</Typography>
+        </Box>
+        {policy.paymentMethod && (
+          <Box display="flex" justifyContent="space-between" mb={1}>
+            <Typography variant="body2" color="text.secondary">
+              Payment Method:
+            </Typography>
+            <Typography variant="body2">{policy.paymentMethod}</Typography>
+          </Box>
+        )}
+
+        <Divider sx={{ my: 1 }} />
+
         {/* Actions */}
-        <Box display="flex" justifyContent="flex-end" gap={1}>
+        <Box display="flex" justifyContent="space-between" alignItems="center">
           <Button
-            size="small"
             variant="outlined"
-            onClick={() => navigate(`/policies/${policy.id}`)}
+            size="small"
+            onClick={onView}
           >
             View Details
           </Button>
-          <Button size="small" variant="contained">
+          <Button
+            variant="contained"
+            size="small"
+            onClick={onRenew}
+          >
             Renew
           </Button>
         </Box>

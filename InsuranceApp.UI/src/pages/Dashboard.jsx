@@ -43,7 +43,7 @@ export default function Dashboard() {
         setLoading(true);
         const [c, p] = await Promise.all([
           request("/api/clients"),
-          request("/api/policies"),
+          request("/api/policies/GetAllPoliciesWithDetails"),
         ]);
         if (!alive) return;
         setClients(Array.isArray(c) ? c : []);
@@ -74,7 +74,7 @@ export default function Dashboard() {
         const d = daysBetween(new Date(now), end);
         return d >= 0 && d <= 30;
       });
-
+    // Clients without policies
     const clientsWithPolicies = new Set(policies.map((p) => p.clientId));
     const clientsWithoutPolicies = clients.filter((c) => !clientsWithPolicies.has(c.id));
 

@@ -5,6 +5,7 @@ using InsuranceApp.Application.Features.Policies.Commands.DeletePolicy;
 using InsuranceApp.Application.Features.Policies.Commands.RestorePolicy;
 using InsuranceApp.Application.Features.Policies.Commands.UpdatePolicy;
 using InsuranceApp.Application.Features.Policies.DTOs;
+using InsuranceApp.Application.Features.Policies.Queries.GetAllPoliciesWithDetails;
 using InsuranceApp.Application.Features.Policies.Queries.GetPolicies;
 using InsuranceApp.Application.Features.Policies.Queries.GetPoliciesByClientId;
 using InsuranceApp.Application.Features.Policies.Queries.GetPolicyById;
@@ -30,6 +31,12 @@ public class PoliciesController(IMediator mediator) : ControllerBase
     public async Task<ActionResult<IReadOnlyList<PolicyDto>>> GetAll()
     {
         var policies = await mediator.Send(new GetPoliciesQuery());
+        return Ok(policies);
+    }
+    [HttpGet("GetAllPoliciesWithDetails")]
+    public async Task<ActionResult<IReadOnlyList<PolicyDetailDto>>> GetAllPoliciesWithDetails()
+    {
+        var policies = await mediator.Send(new GetAllPoliciesWithDetailsQuery());
         return Ok(policies);
     }
 

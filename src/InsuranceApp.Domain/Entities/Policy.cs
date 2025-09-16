@@ -21,4 +21,13 @@ public class Policy : BaseEntity
     public string Currency { get; set; } = "EUR";
 
     public PolicyStatus Status { get; set; } = PolicyStatus.Pending;
+
+    // New fields
+    public decimal? CoverageAmount { get; set; }
+    public PaymentFrequency PaymentFrequency { get; set; } = PaymentFrequency.Annual;
+    public string? PaymentMethod { get; set; } // Card, Bank, Cash
+    public decimal? BrokerCommission { get; set; }
+    public DateTime? RenewalDate { get; set; }
 }
+
+

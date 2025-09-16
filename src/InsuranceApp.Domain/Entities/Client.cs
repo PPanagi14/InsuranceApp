@@ -13,14 +13,22 @@ public class Client : BaseEntity
     // Person
     public string? FirstName { get; set; }
     public string? LastName { get; set; }
+    public DateTime? DateOfBirth { get; set; }
 
     // Company
     public string? CompanyName { get; set; }
+    public string? VatNumber { get; set; }
 
     // Contact
     public string Email { get; set; } = string.Empty;
     public string PhoneMobile { get; set; } = string.Empty;
+    public string? Street { get; set; }
     public string? City { get; set; }
+    public string? PostalCode { get; set; }
+    public string? Country { get; set; }
+
+    // Notes
+    public string? Notes { get; set; }
 
     // Navigation
     public ICollection<Policy> Policies { get; set; } = [];

@@ -16,4 +16,9 @@ public class ClientRepository : GenericRepository<Client>, IClientRepository
 
     public async Task<Client?> GetByEmailAsync(string email, CancellationToken ct = default) =>
         await db.Clients.FirstOrDefaultAsync(c => c.Email == email, ct);
+    public async Task<bool> ExistsByEmailAsync(string email, CancellationToken ct = default) =>
+        await db.Clients.AnyAsync(c => c.Email == email, ct);
+
+    public async Task<bool> ExistsByVatNumberAsync(string vatNumber, CancellationToken ct = default) =>
+        await db.Clients.AnyAsync(c => c.VatNumber == vatNumber, ct);
 }

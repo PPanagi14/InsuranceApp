@@ -75,15 +75,26 @@ public class AppDbContext(
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        base.OnModelCreating(modelBuilder);
+
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
 
-        // Global query filters → exclude soft-deleted entities
+        // Apply query filters
         modelBuilder.Entity<Client>().HasQueryFilter(e => e.DeletedAtUtc == null);
         modelBuilder.Entity<Policy>().HasQueryFilter(e => e.DeletedAtUtc == null);
         modelBuilder.Entity<User>().HasQueryFilter(e => e.DeletedAtUtc == null);
         modelBuilder.Entity<Role>().HasQueryFilter(e => e.DeletedAtUtc == null);
         modelBuilder.Entity<RoleTypeEntity>().HasQueryFilter(e => e.DeletedAtUtc == null);
 
-        base.OnModelCreating(modelBuilder);
+        // Force all DateTime to UTC
+        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+        {
+            foreach (var property in entityType.GetProperties()
+                 .Where(p => p.ClrType == typeof(DateTime) || p.ClrType == typeof(DateTime?)))
+            {
+                property.SetValueConverter(new UtcValueConverter());
+            }
+        }
     }
+
 }

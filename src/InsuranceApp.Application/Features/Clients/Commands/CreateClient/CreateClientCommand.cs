@@ -1,20 +1,21 @@
-﻿using InsuranceApp.Domain.Entities;
+﻿using InsuranceApp.Application.Features.Clients.DTOs;
+using InsuranceApp.Domain.Entities;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace InsuranceApp.Application.Features.Clients.Commands.CreateClient;
 
-public class CreateClientCommand : IRequest<Guid>
-{
-    public ClientType Type { get; set; }
-    public string? FirstName { get; set; }
-    public string? LastName { get; set; }
-    public string? CompanyName { get; set; }
-    public string Email { get; set; } = string.Empty;
-    public string Phone { get; set; } = string.Empty;
-    public string? City { get; set; }
-}
+public record CreateClientCommand(
+    ClientType Type,
+    string Email,
+    string PhoneMobile,
+    string? FirstName,
+    string? LastName,
+    string? CompanyName,
+    string? VatNumber,
+    string? Street,
+    string? City,
+    string? PostalCode,
+    string? Country,
+    DateTime? DateOfBirth,
+    string? Notes
+) : IRequest<Guid>;

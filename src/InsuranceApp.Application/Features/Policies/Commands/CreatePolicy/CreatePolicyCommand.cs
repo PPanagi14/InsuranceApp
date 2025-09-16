@@ -13,5 +13,10 @@ public record CreatePolicyCommand(
     DateTime EndDate,
     decimal PremiumAmount,
     string Currency,
-    PolicyStatus Status
+    PolicyStatus Status,
+    decimal? CoverageAmount,
+    PaymentFrequency PaymentFrequency,
+    string? PaymentMethod,
+    decimal? BrokerCommission,
+    DateTime? RenewalDate
 ) : IRequest<PolicyDetailDto>;

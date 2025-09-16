@@ -63,7 +63,7 @@ export default function ClientDetails() {
               : client.companyName}
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Client since {client.startDate ? formatDate(client.startDate) : "-"}
+            Client since {client.createdAtUtc ? formatDate(client.createdAtUtc) : "-"}
           </Typography>
         </Box>
         <Box display="flex" gap={2} alignItems="center">

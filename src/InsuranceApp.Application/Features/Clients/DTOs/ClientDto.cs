@@ -15,5 +15,6 @@ public record ClientDto(
     string? CompanyName,
     string Email,
     string PhoneMobile,
-    string? City
+    string? City,
+    int PoliciesCount
 );
